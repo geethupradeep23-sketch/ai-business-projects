@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            display: none;
+        }
+        .result h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .content-text {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 15px;
+        }
+        .copy-btn {
+            background: #4CAF50;
+            padding: 10px 20px;
+            width: auto;
+            font-size: 14px;
+        }
+        .copy-btn:hover {
+            background: #45a049;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Content Generator</h1>
+        <p class="subtitle">Generate engaging content for any platform in seconds</p>
+        
+        <form id="generatorForm" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label for="topic">What's your topic?</label>
+                <input 
+                    type="text" 
+                    id="topic" 
+                    placeholder="e.g., How to learn machine learning, Summer vacation tips..."
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="contentType">Content Type</label>
+                <select id="contentType">
+                    <option value="instagram">📸 Instagram</option>
+                    <option value="twitter">🐦 Twitter</option>
+                    <option value="linkedin">💼 LinkedIn</option>
+                    <option value="email">✉️ Email Subject Lines</option>
+                    <option value="blog">📚 Blog Posts</option>
+                    <option value="youtube">▶️ YouTube Videos</option>
+                </select>
+            </div>
+            
+            <button type="submit" id="generateBtn">Generate Content</button>
+        </form>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating amazing content...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <h2>Generated Content</h2>
+            <div class="content-text" id="contentText"></div>
+            <button class="copy-btn" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+        </div>
+    </div>
+
+    <script>
+        async function handleSubmit(event) {
+            event.preventDefault();
+            
+            const topic = document.getElementById('topic').value;
+            const contentType = document.getElementById('contentType').value;
+            const generateBtn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            const error = document.getElementById('error');
+            
+            generateBtn.disabled = true;
+            loading.style.display = 'block';
+            result.style.display = 'none';
+            error.style.display = 'none';
+            
+            try {
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        topic: topic,
+                        type: contentType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                loading.style.display = 'none';
+                
+                if (data.status === 'success') {
+                    document.getElementById('contentText').textContent = data.content;
+                    result.style.display = 'block';
+                } else {
+                    error.textContent = data.error || 'An error occurred';
+                    error.style.display = 'block';
+                }
+            } catch (err) {
+                loading.style.display = 'none';
+                error.textContent = 'Connection error: ' + err.message;
+                error.style.display = 'block';
+            }
+            
+            generateBtn.disabled = false;
+        }
+        
+        function copyToClipboard() {
+            const text = document.getElementById('contentText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Content copied to clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>

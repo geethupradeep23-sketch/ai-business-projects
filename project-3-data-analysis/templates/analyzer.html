@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Analysis Tool</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f9f9f9;
+        }
+        .upload-area:hover {
+            background: #f0f0f0;
+            border-color: #764ba2;
+        }
+        .upload-area.dragover {
+            background: #e8e8ff;
+            border-color: #764ba2;
+        }
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        .upload-text {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .upload-subtext {
+            color: #666;
+            font-size: 13px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 20px;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+        .stats {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .stat-item {
+            display: inline-block;
+            margin-right: 30px;
+            margin-bottom: 15px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .analysis {
+            background: #f9f9f9;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+        }
+        .analysis h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .analysis-text {
+            color: #555;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        .filename {
+            color: #667eea;
+            margin-top: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Data Analysis Tool</h1>
+        <p class="subtitle">Upload your CSV or Excel file and get AI-powered insights in seconds</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Upload your data file</div>
+            <div class="upload-subtext">or drag and drop it here</div>
+            <input type="file" id="fileInput" accept=".csv,.xlsx,.xls">
+        </div>
+        
+        <div class="filename" id="filename"></div>
+        <button id="analyzeBtn" style="display: none;">Analyze Data</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your data...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <div class="stats" id="stats"></div>
+            <div class="analysis">
+                <h3>📈 AI Analysis & Insights</h3>
+                <div class="analysis-text" id="analysisText"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const filename = document.getElementById('filename');
+        let selectedFile = null;
+        
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+        
+        function handleFileSelect(file) {
+            selectedFile = file;
+            filename.textContent = '✅ File selected: ' + file.name;
+            analyzeBtn.style.display = 'block';
+        }
+        
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+            
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            
+            analyzeBtn.disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('error').style.display = 'none';
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                document.getElementById('loading').style.display = 'none';
+                
+                if (data.status === 'success') {
+                    // Display stats
+                    const statsDiv = document.getElementById('stats');
+                    const stats = data.stats;
+                    
+                    statsDiv.innerHTML = `
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.rows}</div>
+                            <div class="stat-label">Total Rows</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.columns}</div>
+                            <div class="stat-label">Columns</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${stats.column_names.length}</div>
+                            <div class="stat-label">Data Fields</div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('analysisText').textContent = data.analysis;
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    document.getElementById('error').textContent = data.error || 'An error occurred';
+                    document.getElementById('error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Connection error: ' + err.message;
+                document.getElementById('error').style.display = 'block';
+            }
+            
+            analyzeBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>

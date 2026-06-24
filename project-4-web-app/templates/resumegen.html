@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume & Cover Letter Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .tab-btn {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input[type="text"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+        input:focus,
+        textarea:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        button.submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button.submit-btn:hover {
+            background: #764ba2;
+        }
+        button.submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            border-radius: 8px;
+            display: none;
+        }
+        .result-text {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            margin-bottom: 15px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        button.action-btn {
+            flex: 1;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        button.action-btn:hover {
+            background: #45a049;
+        }
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin-top: 20px;
+            display: none;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            display: none;
+        }
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📄 Resume & Cover Letter Generator</h1>
+        <p class="subtitle">Generate professional documents in seconds</p>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('resume')">📋 Resume</button>
+            <button class="tab-btn" onclick="switchTab('cover')">💌 Cover Letter</button>
+        </div>
+        
+        <!-- RESUME TAB -->
+        <div id="resume" class="tab-content active">
+            <form id="resumeForm" onsubmit="handleResumeSubmit(event)">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" name="email" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="phone">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" name="location">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Professional Summary</label>
+                    <textarea name="summary" placeholder="Brief overview of your professional background"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Work Experience</label>
+                    <textarea name="experience" placeholder="Job title, Company, Duration, Key achievements"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Education</label>
+                    <textarea name="education" placeholder="Degree, School, Graduation Year"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Skills</label>
+                    <textarea name="skills" placeholder="List your key skills (comma-separated)"></textarea>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Target Job Title</label>
+                        <input type="text" name="jobTitle">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Company</label>
+                        <input type="text" name="company">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Job Description (paste the job posting)</label>
+                    <textarea name="jobDesc" placeholder="Paste the job description to customize your resume"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Generate Resume</button>
+            </form>
+        </div>
+        
+        <!-- COVER LETTER TAB -->
+        <div id="cover" class="tab-content">
+            <form id="coverForm" onsubmit="handleCoverSubmit(event)">
+                <div class="form-group">
+                    <label>Your Name *</label>
+                    <input type="text" name="name" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Target Company *</label>
+                        <input type="text" name="company" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Title *</label>
+                        <input type="text" name="jobTitle" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Years of Experience</label>
+                    <input type="text" name="experience" placeholder="e.g., 5 years">
+                </div>
+                
+                <div class="form-group">
+                    <label>Key Achievements</label>
+                    <textarea name="achievements" placeholder="Your major accomplishments and projects"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Why are you interested in this company?</label>
+                    <textarea name="whyCompany" placeholder="Your motivations and reasons"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Key Skills Relevant to This Job</label>
+                    <textarea name="skills" placeholder="Skills that match the job requirements"></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Generate Cover Letter</button>
+            </form>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating your document...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="result" id="result">
+            <div class="result-text" id="resultText"></div>
+            <div class="action-buttons">
+                <button class="action-btn" onclick="copyToClipboard()">📋 Copy</button>
+                <button class="action-btn" onclick="downloadAsText()">💾 Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentDocType = 'resume';
+        let currentContent = '';
+        
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(tab).classList.add('active');
+            event.target.classList.add('active');
+            currentDocType = tab;
+            document.getElementById('result').style.display = 'none';
+        }
+        
+        async function handleResumeSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(document.getElementById('resumeForm'));
+            const data = Object.fromEntries(formData);
+            
+            await generateDocument('/generate-resume', data, 'resume');
+        }
+        
+        async function handleCoverSubmit(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(document.getElementById('coverForm'));
+            const data = Object.fromEntries(formData);
+            
+            await generateDocument('/generate-cover-letter', data, 'cover');
+        }
+        
+        async function generateDocument(endpoint, data, type) {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                document.getElementById('loading').style.display = 'none';
+                
+                if (result.status === 'success') {
+                    currentContent = result.resume || result.coverLetter;
+                    document.getElementById('resultText').textContent = currentContent;
+                    document.getElementById('result').style.display = 'block';
+                } else {
+                    document.getElementById('error').textContent = result.error || 'An error occurred';
+                    document.getElementById('error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').textContent = 'Error: ' + err.message;
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+        
+        function copyToClipboard() {
+            navigator.clipboard.writeText(currentContent).then(() => {
+                alert('Copied to clipboard!');
+            });
+        }
+        
+        function downloadAsText() {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(currentContent));
+            element.setAttribute('download', currentDocType === 'resume' ? 'resume.txt' : 'cover_letter.txt');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+</body>
+</html>
